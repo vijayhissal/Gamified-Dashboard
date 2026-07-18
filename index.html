@@ -110,82 +110,90 @@
 
             <!-- LEFT PANEL: Avatar & RPG Stats -->
             <section class="lg:col-span-1 flex flex-col gap-6">
+                <!-- HERO CARD -->
                 <div class="card-glass p-5 rounded-2xl flex flex-col items-center relative overflow-hidden group">
-                    <div
-                        class="absolute top-0 right-0 w-32 h-32 bg-purple-600/5 rounded-full blur-3xl -mr-8 -mt-8 pointer-events-none">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-purple-600/5 rounded-full blur-3xl -mr-8 -mt-8 pointer-events-none"></div>
+                    
+                    <!-- Speech Welcome Bubble -->
+                    <div class="relative w-full bg-slate-900/90 border border-purple-500/25 text-slate-200 p-3 rounded-xl mb-4 shadow-inner min-h-[58px] flex items-center justify-center">
+                        <div id="hero-bubble" class="text-[11px] font-bold text-center leading-relaxed text-purple-200">
+                            Welcome back, Hero! Let's crush our goals today.
+                        </div>
+                        <!-- Triangle bubble arrow pointing down -->
+                        <div class="absolute bottom-[-6px] left-[50%] transform translate-x-[-50%] w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-slate-900"></div>
+                    </div>
+                    
+                    <!-- Hero Avatar Area -->
+                    <div id="hero-svg-container" class="w-32 h-32 mb-4 relative filter drop-shadow-[0_0_12px_rgba(139,92,246,0.25)] hover:scale-105 transition-all duration-300 cursor-pointer" title="Click for motivation!">
+                        <!-- Custom Human SVG character injected by app.js -->
                     </div>
 
-                    <!-- Avatar Area -->
-                    <div class="relative w-48 h-48 flex items-center justify-center mb-4">
-                        <!-- Orbit Rings -->
-                        <div
-                            class="absolute inset-0 rounded-full border border-purple-500/10 animate-[spin_20s_linear_infinite]">
-                        </div>
-                        <div
-                            class="absolute inset-4 rounded-full border border-dashed border-indigo-500/20 animate-[spin_15s_linear_infinite_reverse]">
-                        </div>
-
-                        <!-- Inline SVG Character (Drawn dynamically or styled statically with classes) -->
-                        <div id="avatar-svg-container"
-                            class="z-10 w-36 h-36 filter drop-shadow-[0_0_15px_rgba(139,92,246,0.3)] transition-all duration-500">
-                            <!-- SVG will be injected by JavaScript to dynamic expressions -->
-                        </div>
-
-                        <!-- Mood Floating Badge -->
-                        <div id="pet-mood-badge"
-                            class="absolute bottom-2 right-2 bg-slate-900/90 border border-purple-500/30 text-purple-400 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-md">
-                            Happy
-                        </div>
-                    </div>
-
-                    <!-- Character Title -->
+                    <!-- User Name -->
                     <div class="text-center w-full mb-4">
-                        <div class="text-xs uppercase tracking-widest font-extrabold text-purple-400 mb-0.5">Pet
-                            Companion</div>
-                        <h2 id="pet-name"
-                            class="text-lg font-bold text-slate-100 flex items-center justify-center gap-1.5">
-                            Cyber-Slime
-                            <button id="rename-pet-btn"
-                                class="text-slate-500 hover:text-purple-400 transition-colors"><i
-                                    class="fa-solid fa-pen text-xs"></i></button>
+                        <div class="text-[10px] uppercase tracking-widest font-extrabold text-purple-400 mb-0.5">Hero Character</div>
+                        <h2 id="user-name-display" class="text-sm font-bold text-slate-200 flex items-center justify-center gap-1.5">
+                            Hero Adventurer
+                            <button id="rename-user-btn" class="text-slate-500 hover:text-purple-400 transition-colors"><i class="fa-solid fa-pen text-xs"></i></button>
                         </h2>
                     </div>
 
                     <!-- Level Badge & XP Progress -->
-                    <div class="w-full bg-slate-900/60 border border-slate-800/80 rounded-xl p-3 mb-4">
+                    <div class="w-full bg-slate-900/60 border border-slate-800/80 rounded-xl p-3">
                         <div class="flex justify-between items-end mb-1.5">
                             <span class="text-xs font-semibold text-slate-400">Level Progress</span>
-                            <span id="level-display"
-                                class="text-sm font-extrabold text-gold-400 bg-gold-500/10 px-2 py-0.5 rounded border border-gold-500/20">Lvl
-                                1</span>
+                            <span id="level-display" class="text-sm font-extrabold text-gold-400 bg-gold-500/10 px-2 py-0.5 rounded border border-gold-500/20">Lvl 1</span>
                         </div>
                         <!-- Progress Bar Container -->
-                        <div
-                            class="w-full h-3 bg-slate-950 rounded-full border border-slate-800 overflow-hidden relative p-[2px]">
-                            <div id="xp-bar"
-                                class="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 rounded-full transition-all duration-500 ease-out"
-                                style="width: 0%;"></div>
+                        <div class="w-full h-3 bg-slate-950 rounded-full border border-slate-800 overflow-hidden relative p-[2px]">
+                            <div id="xp-bar" class="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 rounded-full transition-all duration-500 ease-out" style="width: 0%;"></div>
                         </div>
                         <div class="flex justify-between items-center mt-1.5 text-[11px] text-slate-400 font-semibold">
                             <span id="xp-text">0 / 100 XP</span>
                             <span id="xp-percentage">0%</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- PET CARD -->
+                <div class="card-glass p-5 rounded-2xl flex flex-col items-center relative overflow-hidden group">
+                    <!-- Avatar Area -->
+                    <div class="relative w-40 h-40 flex items-center justify-center mb-3">
+                        <!-- Orbit Rings -->
+                        <div class="absolute inset-0 rounded-full border border-emerald-500/5 animate-[spin_25s_linear_infinite]"></div>
+                        <div class="absolute inset-3 rounded-full border border-dashed border-emerald-550/10 animate-[spin_18s_linear_infinite_reverse]"></div>
+                        
+                        <!-- Inline SVG Character -->
+                        <div id="avatar-svg-container" class="z-10 w-28 h-28 filter drop-shadow-[0_0_12px_rgba(16,185,129,0.25)] transition-all duration-500">
+                            <!-- SVG will be injected by JavaScript -->
+                        </div>
+
+                        <!-- Mood Floating Badge -->
+                        <div id="pet-mood-badge" class="absolute bottom-1 right-1 bg-slate-900/90 border border-emerald-500/30 text-emerald-400 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full tracking-wider shadow-md">
+                            Happy
+                        </div>
+                    </div>
+
+                    <!-- Pet Character Title -->
+                    <div class="text-center w-full mb-4">
+                        <div class="text-[10px] uppercase tracking-widest font-extrabold text-emerald-400 mb-0.5">Pet Companion</div>
+                        <h2 id="pet-name" class="text-sm font-bold text-slate-100 flex items-center justify-center gap-1.5">
+                            Cyber-Slime
+                            <button id="rename-pet-btn" class="text-slate-500 hover:text-emerald-400 transition-colors" title="Rename Pet"><i class="fa-solid fa-pen text-xs"></i></button>
+                        </h2>
+                    </div>
 
                     <!-- Mini Stats Grid -->
                     <div class="grid grid-cols-2 gap-3 w-full">
-                        <div class="bg-slate-900/40 border border-slate-800/50 rounded-xl p-3 text-center">
-                            <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">Habit Streak
-                            </div>
-                            <div class="text-xl font-extrabold text-emerald-400 flex items-center justify-center gap-1">
+                        <div class="bg-slate-900/40 border border-slate-800/50 rounded-xl p-2.5 text-center">
+                            <div class="text-[9px] uppercase font-bold text-slate-500 tracking-wider mb-1">Habit Streak</div>
+                            <div class="text-lg font-extrabold text-emerald-400 flex items-center justify-center gap-1">
                                 <i class="fa-solid fa-fire text-amber-500 animate-[bounce_1.5s_infinite]"></i>
                                 <span id="streak-display">0</span>
                             </div>
                         </div>
-                        <div class="bg-slate-900/40 border border-slate-800/50 rounded-xl p-3 text-center">
-                            <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">Quests Done
-                            </div>
-                            <div class="text-xl font-extrabold text-purple-400">
+                        <div class="bg-slate-900/40 border border-slate-800/50 rounded-xl p-2.5 text-center">
+                            <div class="text-[9px] uppercase font-bold text-slate-500 tracking-wider mb-1">Quests Done</div>
+                            <div class="text-lg font-extrabold text-purple-400">
                                 <span id="quests-done-display">0</span>
                             </div>
                         </div>
@@ -364,12 +372,13 @@
                 </div>
 
                 <!-- 7-Day Analytics Card -->
-                <div class="card-glass p-5 rounded-2xl flex flex-col gap-3">
+                <div id="analytics-card" class="card-glass p-5 rounded-2xl flex flex-col gap-3 cursor-pointer hover:border-amber-500/30 hover:shadow-neon-gold/5 transition-all group/card">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-chart-line text-amber-400"></i>
                             <h3 class="font-bold text-slate-200 text-sm">7-Day Completion Rate</h3>
                         </div>
+                        <i class="fa-solid fa-expand text-[10px] text-slate-500 group-hover/card:text-amber-400 transition-colors" title="Expand Dashboard"></i>
                     </div>
 
                     <!-- SVG Analytics Container -->
@@ -427,6 +436,88 @@
                     class="fa-solid fa-heart text-red-500 animate-[heartbeat_1.2s_infinite]"></i> by Vijay</p>
         </div>
     </footer>
+
+    <!-- Analytics Modal Dashboard -->
+    <div id="analytics-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-slate-900 border border-slate-800/80 rounded-3xl p-6 md:p-8 max-w-4xl w-full mx-4 shadow-[0_0_60px_rgba(245,158,11,0.15)] relative transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-y-auto">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-slate-850 pb-4 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20 text-amber-400">
+                        <i class="fa-solid fa-chart-simple text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-100">Weekly Progress Dashboard</h3>
+                        <p class="text-xs text-slate-400">Detailed overview of habits and wellness logs over the last 7 days</p>
+                    </div>
+                </div>
+                <button id="close-analytics-btn" class="text-slate-400 hover:text-slate-100 bg-slate-950/60 border border-slate-800 hover:border-slate-700 p-2 rounded-xl transition-all">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Content Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- Stats Sidecards -->
+                <div class="md:col-span-1 flex flex-col gap-4">
+                    <!-- Weekly Habit Rate -->
+                    <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col justify-between h-[82px]">
+                        <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Weekly Avg Habits</span>
+                        <span id="modal-avg-habits" class="text-2xl font-black text-emerald-400">0%</span>
+                    </div>
+                    <!-- Weekly Hydration -->
+                    <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col justify-between h-[82px]">
+                        <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Weekly Avg Hydration</span>
+                        <span id="modal-avg-water" class="text-2xl font-black text-blue-400">0 ml</span>
+                    </div>
+                    <!-- Weekly Sleep -->
+                    <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col justify-between h-[82px]">
+                        <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Weekly Avg Sleep</span>
+                        <span id="modal-avg-sleep" class="text-2xl font-black text-indigo-400">0 hrs</span>
+                    </div>
+                </div>
+                
+                <!-- Large Chart Container -->
+                <div class="md:col-span-2 bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-semibold text-slate-400">Performance Timeline (7 Days)</span>
+                        <!-- Legend -->
+                        <div class="flex gap-3 text-[10px]">
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-circle text-[8px] text-purple-400"></i> Habits Completion</span>
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-circle text-[8px] text-blue-400"></i> Hydration Target</span>
+                        </div>
+                    </div>
+                    <div class="w-full h-[200px] flex items-center justify-center p-2">
+                        <svg id="modal-analytics-chart" class="w-full h-full text-slate-400 overflow-visible">
+                            <!-- Rendered dynamically -->
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- History Table / Detail List -->
+            <div class="flex-grow flex flex-col gap-3">
+                <h4 class="text-xs font-semibold text-slate-400">Raw Logs History</h4>
+                <div class="border border-slate-800/80 rounded-2xl overflow-hidden bg-slate-950/40">
+                    <div class="max-h-[180px] overflow-y-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-950 border-b border-slate-800 text-slate-500 font-bold uppercase tracking-wider">
+                                    <th class="p-3">Date</th>
+                                    <th class="p-3 text-center">Habit Rate</th>
+                                    <th class="p-3 text-center">Hydration</th>
+                                    <th class="p-3 text-center">Sleep Logged</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body" class="divide-y divide-slate-800/60 text-slate-300">
+                                <!-- Injected dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- App Logic -->
     <script src="app.js"></script>

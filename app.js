@@ -7,7 +7,9 @@ const DEFAULT_STATE = {
         level: 1,
         currentXp: 0,
         xpNeeded: 100,
-        petName: "Cyber-Slime"
+        petName: "Cyber-Slime",
+        userName: "Hero Adventurer",
+        gender: "girl"
     },
     habits: [
         { id: "h-1", name: "Drink 2L of water", completedToday: false, streak: 0, lastCompleted: null },
@@ -50,6 +52,8 @@ function initState() {
             if (!state.history) state.history = DEFAULT_STATE.history;
             if (!state.currentDate) state.currentDate = todayStr;
             if (state.totalQuestsCompleted === undefined) state.totalQuestsCompleted = 0;
+            if (!state.profile.userName) state.profile.userName = "Hero Adventurer";
+            if (!state.profile.gender) state.profile.gender = "girl";
         } catch (e) {
             console.error("Error loading state from localStorage, resetting to default.", e);
             state = JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -148,6 +152,7 @@ function triggerLevelUpCelebration() {
     playLevelUpSound();
     
     showToast(`LEVEL UP! Reached Level ${state.profile.level}! 🎉`, "gold");
+    updateHeroBubble(`LEVEL UP! Reached Level ${state.profile.level}! Outstanding achievements, adventurer! 🏆🎉`);
 }
 
 function closeLevelUpModal() {
@@ -481,14 +486,28 @@ function renderApp() {
     // 1. Date Header
     document.getElementById("date-display").textContent = formatDateDisplay(state.currentDate);
     
-    // 2. Stats
+    // 2. Stats & Profiles
     document.getElementById("level-display").textContent = `Lvl ${state.profile.level}`;
     document.getElementById("pet-name").innerHTML = `
         ${state.profile.petName}
-        <button id="rename-pet-btn" onclick="renamePetPrompt(event)" class="text-slate-500 hover:text-purple-400 transition-colors" title="Rename Pet">
+        <button id="rename-pet-btn" onclick="renamePetPrompt(event)" class="text-slate-550 hover:text-emerald-400 transition-colors" title="Rename Pet">
             <i class="fa-solid fa-pen text-xs"></i>
         </button>
     `;
+    
+    // Render Human Hero Name
+    document.getElementById("user-name-display").innerHTML = `
+        ${escapeHtml(state.profile.userName)}
+        <button id="rename-user-btn" onclick="renameUserPrompt(event)" class="text-slate-500 hover:text-purple-400 transition-colors mr-1" title="Rename Character">
+            <i class="fa-solid fa-pen text-xs"></i>
+        </button>
+        <button id="toggle-gender-btn" onclick="toggleGender(event)" class="text-slate-500 hover:text-purple-400 transition-colors text-[9px] font-extrabold ml-1.5 border border-slate-800 hover:border-purple-500/30 px-1.5 py-0.5 rounded bg-slate-950/80 uppercase tracking-wider" title="Toggle Character Model">
+            ${state.profile.gender === 'boy' ? '👧 Girl' : '👦 Boy'}
+        </button>
+    `;
+    
+    // Render Human Hero SVG Goggles/Visor character
+    document.getElementById("hero-svg-container").innerHTML = drawHeroAvatar();
     
     // XP Bar Width
     const xpPercent = Math.min(100, Math.round((state.profile.currentXp / state.profile.xpNeeded) * 100));
@@ -518,6 +537,12 @@ function renderApp() {
     
     // 8. Render SVG Chart
     renderAnalyticsChart();
+
+    // 9. Update Analytics Modal if open
+    const modal = document.getElementById("analytics-modal");
+    if (modal && !modal.classList.contains("opacity-0")) {
+        renderModalAnalytics();
+    }
 }
 
 // RENDER HABITS
@@ -689,6 +714,7 @@ function toggleHabit(id, event) {
         // Add XP (+10)
         addXp(10, event);
         showToast(`Habit completed! +10 XP 🔥`, "emerald");
+        updateHeroBubble("Nice! Habit complete. +10 XP added to our pool! 🔥");
     } else {
         // Uncheck adjustments
         if (habit.streak > 0) habit.streak -= 1;
@@ -697,6 +723,7 @@ function toggleHabit(id, event) {
         // Deduct XP (don't go below 0)
         state.profile.currentXp = Math.max(0, state.profile.currentXp - 10);
         showToast("Habit unchecked. -10 XP deducted.", "red");
+        updateHeroBubble("Habit unchecked. Let's stay disciplined, adventurer! ⚠️");
         saveState();
         renderApp();
     }
@@ -726,6 +753,7 @@ function toggleQuest(id, event) {
         // Add XP (+25)
         addXp(25, event);
         showToast("Quest completed! +25 XP 📜", "purple");
+        updateHeroBubble("Incredible! Quest finished. +25 XP in the bag! 📜✨");
         
         // Animate fading away
         const element = document.getElementById(`quest-item-${id}`);
@@ -752,6 +780,7 @@ function toggleQuest(id, event) {
         state.profile.currentXp = Math.max(0, state.profile.currentXp - 25);
         saveState();
         renderApp();
+        updateHeroBubble("Quest unchecked. Let's make sure we get it done!");
     }
 }
 
@@ -1166,13 +1195,510 @@ function triggerConfetti() {
     draw();
 }
 
+// ==========================================
+// ANALYTICS MODAL METHODS
+// ==========================================
+
+function openAnalyticsModal() {
+    const modal = document.getElementById("analytics-modal");
+    if (!modal) return;
+    
+    modal.classList.remove("pointer-events-none", "opacity-0");
+    modal.querySelector(".bg-slate-900").style.transform = "scale(1)";
+    
+    renderModalAnalytics();
+}
+
+function closeAnalyticsModal() {
+    const modal = document.getElementById("analytics-modal");
+    if (!modal) return;
+    
+    modal.classList.add("pointer-events-none", "opacity-0");
+    modal.querySelector(".bg-slate-900").style.transform = "scale(0.95)";
+}
+
+function renderModalAnalytics() {
+    const logs = state.history.slice(-7);
+    const tbody = document.getElementById("history-table-body");
+    
+    if (logs.length === 0) {
+        document.getElementById("modal-avg-habits").textContent = "0%";
+        document.getElementById("modal-avg-water").textContent = "0 ml";
+        document.getElementById("modal-avg-sleep").textContent = "0.0 hrs";
+        tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">No logs saved yet. Log a day to view trends!</td></tr>`;
+        return;
+    }
+    
+    // 1. Calculate Averages
+    let totalHabitRate = 0;
+    let totalWater = 0;
+    let totalSleep = 0;
+    let loggedSleepDays = 0;
+    
+    logs.forEach(log => {
+        totalHabitRate += log.completionRate;
+        totalWater += log.waterMl;
+        if (log.sleepHours > 0) {
+            totalSleep += log.sleepHours;
+            loggedSleepDays++;
+        }
+    });
+    
+    const avgHabit = Math.round(totalHabitRate / logs.length);
+    const avgWater = Math.round(totalWater / logs.length);
+    const avgSleep = loggedSleepDays > 0 ? (totalSleep / loggedSleepDays).toFixed(1) : "0.0";
+    
+    document.getElementById("modal-avg-habits").textContent = `${avgHabit}%`;
+    document.getElementById("modal-avg-water").textContent = `${avgWater} ml`;
+    document.getElementById("modal-avg-sleep").textContent = `${avgSleep} hrs`;
+    
+    // 2. Render History Table Rows (Reverse order - newest first)
+    tbody.innerHTML = "";
+    [...logs].reverse().forEach(log => {
+        const row = document.createElement("tr");
+        row.className = "border-b border-slate-800/40 hover:bg-slate-900/35 transition-colors";
+        
+        row.innerHTML = `
+            <td class="p-3 font-semibold">${formatShortDate(log.date)}</td>
+            <td class="p-3 text-center font-bold text-emerald-400">${log.completionRate}%</td>
+            <td class="p-3 text-center font-bold text-blue-400">${log.waterMl} ml</td>
+            <td class="p-3 text-center text-slate-400">${log.sleepHours > 0 ? log.sleepHours.toFixed(1) + ' hrs' : '<span class="opacity-30">-</span>'}</td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    // 3. Render Large SVG Chart in Modal (Dual-Line: Habits & Water)
+    renderModalChart(logs);
+}
+
+function renderModalChart(logs) {
+    const svg = document.getElementById("modal-analytics-chart");
+    if (!svg) return;
+    
+    svg.innerHTML = "";
+    
+    const svgWidth = svg.clientWidth || 550;
+    const svgHeight = svg.clientHeight || 200;
+    
+    const mLeft = 32;
+    const mRight = 15;
+    const mTop = 15;
+    const mBottom = 22;
+    
+    const chartWidth = svgWidth - mLeft - mRight;
+    const chartHeight = svgHeight - mTop - mBottom;
+    
+    // Grid lines
+    const gridDivisions = 4;
+    for (let i = 0; i <= gridDivisions; i++) {
+        const percent = (i / gridDivisions) * 100;
+        const y = mTop + chartHeight - (i / gridDivisions) * chartHeight;
+        
+        // Grid Line
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", mLeft);
+        line.setAttribute("y1", y);
+        line.setAttribute("x2", svgWidth - mRight);
+        line.setAttribute("y2", y);
+        line.setAttribute("class", "chart-grid-line");
+        svg.appendChild(line);
+        
+        // Label
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", mLeft - 6);
+        text.setAttribute("y", y + 4);
+        text.setAttribute("text-anchor", "end");
+        text.setAttribute("fill", "#64748b");
+        text.setAttribute("font-size", "9");
+        text.setAttribute("font-weight", "bold");
+        text.textContent = `${percent}%`;
+        svg.appendChild(text);
+    }
+    
+    // Calculate coordinates for both curves
+    const pointsHabits = [];
+    const pointsWater = [];
+    
+    logs.forEach((log, index) => {
+        const x = mLeft + (index / (logs.length - 1 || 1)) * chartWidth;
+        const yHabits = mTop + chartHeight - (log.completionRate / 100) * chartHeight;
+        const waterPercent = Math.min(100, Math.round((log.waterMl / 2000) * 100));
+        const yWater = mTop + chartHeight - (waterPercent / 100) * chartHeight;
+        
+        pointsHabits.push({ x, y: yHabits, val: log.completionRate, date: log.date });
+        pointsWater.push({ x, y: yWater, val: log.waterMl, date: log.date, pct: waterPercent });
+    });
+    
+    // Setup Gradients in Defs
+    let defs = svg.querySelector("defs");
+    if (!defs) {
+        defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+        defs.innerHTML = `
+            <linearGradient id="modalHabitsGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.25" />
+                <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.0" />
+            </linearGradient>
+            <linearGradient id="modalWaterGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.2" />
+                <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.0" />
+            </linearGradient>
+        `;
+        svg.appendChild(defs);
+    }
+    
+    // Draw Area and Line for Habits (Purple)
+    if (pointsHabits.length > 1) {
+        const area = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        let dArea = `M ${pointsHabits[0].x} ${mTop + chartHeight}`;
+        pointsHabits.forEach(p => dArea += ` L ${p.x} ${p.y}`);
+        dArea += ` L ${pointsHabits[pointsHabits.length - 1].x} ${mTop + chartHeight} Z`;
+        area.setAttribute("d", dArea);
+        area.setAttribute("fill", "url(#modalHabitsGrad)");
+        area.setAttribute("class", "chart-area");
+        svg.appendChild(area);
+        
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        let dLine = `M ${pointsHabits[0].x} ${pointsHabits[0].y}`;
+        for (let i = 1; i < pointsHabits.length; i++) {
+            dLine += ` L ${pointsHabits[i].x} ${pointsHabits[i].y}`;
+        }
+        line.setAttribute("d", dLine);
+        line.setAttribute("fill", "none");
+        line.setAttribute("stroke", "#8b5cf6");
+        line.setAttribute("class", "chart-line");
+        svg.appendChild(line);
+    }
+    
+    // Draw Area and Line for Water (Blue)
+    if (pointsWater.length > 1) {
+        const area = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        let dArea = `M ${pointsWater[0].x} ${mTop + chartHeight}`;
+        pointsWater.forEach(p => dArea += ` L ${p.x} ${p.y}`);
+        dArea += ` L ${pointsWater[pointsWater.length - 1].x} ${mTop + chartHeight} Z`;
+        area.setAttribute("d", dArea);
+        area.setAttribute("fill", "url(#modalWaterGrad)");
+        area.setAttribute("class", "chart-area");
+        svg.appendChild(area);
+        
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        let dLine = `M ${pointsWater[0].x} ${pointsWater[0].y}`;
+        for (let i = 1; i < pointsWater.length; i++) {
+            dLine += ` L ${pointsWater[i].x} ${pointsWater[i].y}`;
+        }
+        line.setAttribute("d", dLine);
+        line.setAttribute("fill", "none");
+        line.setAttribute("stroke", "#3b82f6");
+        line.setAttribute("class", "chart-line");
+        svg.appendChild(line);
+    }
+    
+    // Draw Markers & X Labels
+    pointsHabits.forEach((p, idx) => {
+        const pw = pointsWater[idx];
+        
+        // X Label
+        const xText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        xText.setAttribute("x", p.x);
+        xText.setAttribute("y", mTop + chartHeight + 14);
+        xText.setAttribute("text-anchor", "middle");
+        xText.setAttribute("fill", "#64748b");
+        xText.setAttribute("font-size", "9");
+        xText.setAttribute("font-weight", "bold");
+        xText.textContent = formatShortDate(p.date);
+        svg.appendChild(xText);
+
+        // Water Dot
+        const dotWater = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        dotWater.setAttribute("cx", pw.x);
+        dotWater.setAttribute("cy", pw.y);
+        dotWater.setAttribute("r", "4");
+        dotWater.setAttribute("fill", "#3b82f6");
+        dotWater.setAttribute("stroke", "#0f172a");
+        dotWater.setAttribute("stroke-width", "1.5");
+        dotWater.setAttribute("class", "chart-point");
+        
+        const titleW = document.createElementNS("http://www.w3.org/2000/svg", "title");
+        titleW.textContent = `${formatShortDate(pw.date)} - Hydration: ${pw.val}ml (${pw.pct}%)`;
+        dotWater.appendChild(titleW);
+        svg.appendChild(dotWater);
+
+        // Habits Dot
+        const dotHabit = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        dotHabit.setAttribute("cx", p.x);
+        dotHabit.setAttribute("cy", p.y);
+        dotHabit.setAttribute("r", "4");
+        dotHabit.setAttribute("fill", "#8b5cf6");
+        dotHabit.setAttribute("stroke", "#0f172a");
+        dotHabit.setAttribute("stroke-width", "1.5");
+        dotHabit.setAttribute("class", "chart-point");
+        
+        const titleH = document.createElementNS("http://www.w3.org/2000/svg", "title");
+        titleH.textContent = `${formatShortDate(p.date)} - Habit Completion: ${p.val}%`;
+        dotHabit.appendChild(titleH);
+        svg.appendChild(dotHabit);
+    });
+}
+
 // Handle window resizing for chart updates
 window.addEventListener("resize", () => {
-    if (state) renderAnalyticsChart();
+    if (state) {
+        renderAnalyticsChart();
+        const modal = document.getElementById("analytics-modal");
+        if (modal && !modal.classList.contains("opacity-0")) {
+            renderModalAnalytics();
+        }
+    }
 });
+
+// ==========================================
+// HUMAN HERO AVATAR METHODS
+// ==========================================
+
+const GREETINGS = [
+    "Welcome back, adventurer! Ready to crush today's routine?",
+    "Every habit completed is a step closer to leveling up! 🚀",
+    "How is your water intake today? Hydration is key! 💧",
+    "A level 10 hero was once a level 1 beginner. Keep going!",
+    "Your cyber pet companion is looking happy and proud of you! ✨",
+    "Did you sleep well? Remember to log your rest duration! 🌙",
+    "Consistency is the ultimate superpower. Let's do this! 💪",
+    "One daily checkmark at a time, we build a legacy! 🏆",
+    "Do you want to rename me? Click the pen icon next to my name!",
+    "Stay focused, stay disciplined, and level up your life!"
+];
+
+function updateHeroBubble(message) {
+    const bubble = document.getElementById("hero-bubble");
+    if (!bubble) return;
+    bubble.textContent = message;
+    
+    // Scale bounce text animation
+    bubble.style.transform = "scale(0.95)";
+    setTimeout(() => {
+        bubble.style.transform = "scale(1)";
+    }, 100);
+}
+
+function speakGreeting() {
+    const hours = new Date().getHours();
+    let welcome = "";
+    if (hours >= 5 && hours < 12) {
+        welcome = "Good morning! Sunrise brings new daily quests. Let's start strong! ☀️";
+    } else if (hours >= 12 && hours < 18) {
+        welcome = "Good afternoon, explorer! Hope you're staying hydrated and active. ⚡";
+    } else {
+        welcome = "Good evening! Tally your achievements and log your sleep. 🌙";
+    }
+    updateHeroBubble(welcome);
+}
+
+function triggerHeroMotivation() {
+    const quote = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
+    updateHeroBubble(quote);
+    playTalkSound();
+}
+
+function playTalkSound() {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(450, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.08);
+        
+        gain.gain.setValueAtTime(0.04, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
+        
+        osc.start();
+        osc.stop(ctx.currentTime + 0.09);
+    } catch (e) {}
+}
+
+function renameUserPrompt(event) {
+    event.stopPropagation();
+    const newName = prompt("Rename your Hero Character:", state.profile.userName);
+    if (newName && newName.trim() !== "") {
+        state.profile.userName = newName.trim().substring(0, 18);
+        saveState();
+        renderApp();
+        updateHeroBubble(`Pleasure meeting you, ${state.profile.userName}! Let's make today count.`);
+    }
+}
+
+function toggleGender(event) {
+    event.stopPropagation();
+    state.profile.gender = state.profile.gender === "boy" ? "girl" : "boy";
+    saveState();
+    renderApp();
+    updateHeroBubble(`Representation updated! Metamorphosed into ${state.profile.gender === "boy" ? "Boy Explorer" : "Girl Explorer"}. 👋`);
+    playTalkSound();
+}
+
+function drawHeroAvatar() {
+    const gender = state.profile.gender || "girl";
+    
+    let svgContent = `
+    <svg viewBox="0 0 100 100" class="w-full h-full">
+        <defs>
+            <!-- Skin Gradient -->
+            <linearGradient id="heroSkin" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#ffe4e6" />
+                <stop offset="100%" stop-color="#fecdd3" />
+            </linearGradient>
+            <!-- Suit Gradient -->
+            <linearGradient id="heroSuit" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0f172a" />
+                <stop offset="100%" stop-color="#2e1042" />
+            </linearGradient>
+            <!-- Girl Hair (Magenta/Pink) -->
+            <linearGradient id="girlHair" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#f472b6" />
+                <stop offset="100%" stop-color="#db2777" />
+            </linearGradient>
+            <!-- Boy Hair (Blue/Cyan) -->
+            <linearGradient id="boyHair" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#22d3ee" />
+                <stop offset="100%" stop-color="#0284c7" />
+            </linearGradient>
+            <!-- Eye Goggles filter -->
+            <filter id="eyeGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="1.2" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+        </defs>
+
+        <!-- Background -->
+        <circle cx="50" cy="50" r="46" fill="#0f172a" stroke="#8b5cf6" stroke-width="1.5" stroke-opacity="0.3" />
+        <circle cx="50" cy="50" r="41" fill="#020617" />
+    `;
+
+    if (gender === "girl") {
+        svgContent += `
+        <!-- Twin Tails (Back hair) -->
+        <g class="animate-[bounceHair_2.5s_infinite_ease-in-out]" style="transform-origin: 30px 30px;">
+            <path d="M28 32 C15 32, 8 45, 10 58 C12 65, 20 62, 24 50 Z" fill="url(#girlHair)" />
+        </g>
+        <g class="animate-[bounceHair_2.5s_infinite_ease-in-out]" style="transform-origin: 70px 30px; animation-delay: 1.25s;">
+            <path d="M72 32 C85 32, 92 45, 90 58 C88 65, 80 62, 76 50 Z" fill="url(#girlHair)" />
+        </g>
+
+        <!-- Shoulders / Torso -->
+        <path d="M25 85 C25 73, 32 68, 50 68 C68 68, 75 73, 75 85 Z" fill="url(#heroSuit)" stroke="#8b5cf6" stroke-width="1" />
+        <!-- Collar -->
+        <path d="M42 68 L50 78 L58 68" fill="none" stroke="#f472b6" stroke-width="1.5" />
+
+        <!-- Neck -->
+        <rect x="45" y="60" width="10" height="9" fill="url(#heroSkin)" />
+
+        <!-- Face -->
+        <ellipse cx="50" cy="45" rx="17" ry="18" fill="url(#heroSkin)" />
+
+        <!-- Eyes -->
+        <circle cx="43" cy="43" r="2.2" fill="#0f172a" />
+        <circle cx="44" cy="42" r="0.7" fill="#ffffff" />
+        <circle cx="57" cy="43" r="2.2" fill="#0f172a" />
+        <circle cx="58" cy="42" r="0.7" fill="#ffffff" />
+        
+        <!-- Blush -->
+        <ellipse cx="37" cy="48" rx="2" ry="1" fill="#f43f5e" opacity="0.6" />
+        <ellipse cx="63" cy="48" rx="2" ry="1" fill="#f43f5e" opacity="0.6" />
+
+        <!-- Mouth -->
+        <path d="M47 52 Q50 56, 53 52" fill="none" stroke="#be123c" stroke-width="1.5" stroke-linecap="round" />
+
+        <!-- Hair Front / Bangs -->
+        <path d="M33 34 C33 24, 67 24, 67 34 C67 36, 60 30, 50 32 C40 30, 33 36, 33 34 Z" fill="url(#girlHair)" />
+        <path d="M33 34 L37 40 L41 35 L47 41 L53 35 L59 40 L67 34" fill="none" stroke="url(#girlHair)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+
+        <!-- Hair Ribbon clips -->
+        <circle cx="30" cy="30" r="2.5" fill="#facc15" />
+        <circle cx="70" cy="30" r="2.5" fill="#facc15" />
+
+        <!-- Waving arm/hand -->
+        <g class="animate-wave-hand" style="transform-origin: 75px 82px;">
+            <path d="M72 80 C74 65, 78 58, 83 48 C85 45, 89 47, 87 52 C82 62, 79 72, 77 82 Z" fill="url(#heroSkin)" stroke="#e11d48" stroke-width="0.5" />
+            <!-- Glove sleeve -->
+            <path d="M71 78 L79 81 Z" stroke="#8b5cf6" stroke-width="3" />
+            <!-- Hand / Fingers waving details -->
+            <circle cx="83" cy="46" r="3" fill="url(#heroSkin)" />
+            <path d="M81 44 L80 38 M83 43 L84 37 M85 45 L87 39 M82 46 L82 43" stroke="url(#heroSkin)" stroke-width="1.2" stroke-linecap="round" />
+        </g>
+        `;
+    } else {
+        // BOY CHARACTER
+        svgContent += `
+        <!-- Shoulders / Torso -->
+        <path d="M25 85 C25 73, 32 68, 50 68 C68 68, 75 73, 75 85 Z" fill="url(#heroSuit)" stroke="#0284c7" stroke-width="1" />
+        <!-- Collar -->
+        <path d="M42 68 L50 78 L58 68" fill="none" stroke="#22d3ee" stroke-width="1.5" />
+
+        <!-- Neck -->
+        <rect x="45" y="60" width="10" height="9" fill="url(#heroSkin)" />
+
+        <!-- Face -->
+        <ellipse cx="50" cy="45" rx="17" ry="18" fill="url(#heroSkin)" />
+
+        <!-- Eyes -->
+        <circle cx="43" cy="43" r="2.2" fill="#0f172a" />
+        <circle cx="44" cy="42" r="0.7" fill="#ffffff" />
+        <circle cx="57" cy="43" r="2.2" fill="#0f172a" />
+        <circle cx="58" cy="42" r="0.7" fill="#ffffff" />
+
+        <!-- Blush -->
+        <ellipse cx="37" cy="48" rx="2" ry="1" fill="#0284c7" opacity="0.3" />
+        <ellipse cx="63" cy="48" rx="2" ry="1" fill="#0284c7" opacity="0.3" />
+
+        <!-- Mouth -->
+        <path d="M47 52 Q50 56, 53 52" fill="none" stroke="#be123c" stroke-width="1.5" stroke-linecap="round" />
+
+        <!-- Hair Front / Spiky Boy hair -->
+        <path d="M33 34 C33 22, 67 22, 67 34 C67 34, 70 32, 69 28 C67 24, 60 22, 50 22 C40 22, 33 24, 31 28 C30 32, 33 34, 33 34 Z" fill="url(#boyHair)" />
+        <path d="M31 32 L36 39 L40 33 L45 40 L50 32 L56 40 L61 33 L67 34 L69 38" fill="none" stroke="url(#boyHair)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+
+        <!-- Cyber Cap/Visor band -->
+        <path d="M33 30 Q50 25, 67 30 L65 34 Q50 30, 35 34 Z" fill="#0f172a" stroke="#22d3ee" stroke-width="0.8" />
+        <rect x="42" y="24" width="16" height="5" rx="1.5" fill="#22d3ee" class="animate-pulse" />
+
+        <!-- Waving arm/hand -->
+        <g class="animate-wave-hand" style="transform-origin: 75px 82px;">
+            <path d="M72 80 C74 65, 78 58, 83 48 C85 45, 89 47, 87 52 C82 62, 79 72, 77 82 Z" fill="url(#heroSkin)" stroke="#025a87" stroke-width="0.5" />
+            <!-- Sleeve edge -->
+            <path d="M71 78 L79 81 Z" stroke="#0284c7" stroke-width="3" />
+            <!-- Hand / Fingers waving details -->
+            <circle cx="83" cy="46" r="3" fill="url(#heroSkin)" />
+            <path d="M81 44 L80 38 M83 43 L84 37 M85 45 L87 39 M82 46 L82 43" stroke="url(#heroSkin)" stroke-width="1.2" stroke-linecap="round" />
+        </g>
+        `;
+    }
+
+    svgContent += `</svg>`;
+    return svgContent;
+}
 
 // Initialize app when DOM is fully loaded
 window.addEventListener("DOMContentLoaded", () => {
     initState();
     renderApp();
+    
+    // Bind Analytics Modal opening / closing triggers
+    document.getElementById("analytics-card").addEventListener("click", openAnalyticsModal);
+    document.getElementById("close-analytics-btn").addEventListener("click", closeAnalyticsModal);
+    document.getElementById("analytics-modal").addEventListener("click", (e) => {
+        if (e.target === document.getElementById("analytics-modal")) {
+            closeAnalyticsModal();
+        }
+    });
+
+    // Bind Hero Avatar motivational interaction
+    document.getElementById("hero-svg-container").addEventListener("click", triggerHeroMotivation);
+    
+    // Welcome Greeting Speech Bubble text initialization
+    speakGreeting();
 });

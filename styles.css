@@ -173,3 +173,28 @@
 .level-up-glow {
     animation: borderGlow 2s infinite ease-in-out;
 }
+
+/* Waving hand animation */
+@keyframes waveHand {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    50% {
+        transform: rotate(-14deg);
+    }
+}
+
+.animate-wave-hand {
+    animation: waveHand 1.6s infinite ease-in-out;
+}
+
+/* Hair bounce animation */
+@keyframes bounceHair {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    50% {
+        transform: rotate(4deg);
+    }
+}
+
