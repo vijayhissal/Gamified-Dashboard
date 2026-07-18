@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HabitQuest RPG | Gamified Habit & Wellness Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            900: '#0f172a',
+                            950: '#070a13',
+                        },
+                        emerald: {
+                            500: '#10b981',
+                            400: '#34d399',
+                        },
+                        blue: {
+                            500: '#3b82f6',
+                            400: '#60a5fa',
+                        },
+                        purple: {
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body
+    class="bg-slate-950 text-slate-100 min-h-screen font-sans overflow-x-hidden flex flex-col selection:bg-purple-500/30 selection:text-purple-200">
+    <!-- Floating XP Particles Container -->
+    <div id="particles-container" class="fixed inset-0 pointer-events-none z-50"></div>
+
+    <!-- Main Header -->
+    <header
+        class="border-b border-slate-800/80 bg-slate-900/40 backdrop-blur-md sticky top-0 z-40 px-4 py-3 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <!-- App Logo -->
+            <div class="flex items-center gap-3">
+                <div
+                    class="bg-gradient-to-tr from-purple-600 to-indigo-600 p-2.5 rounded-xl shadow-lg shadow-purple-900/20 flex items-center justify-center">
+                    <i class="fa-solid fa-gamepad text-xl text-purple-200 animate-pulse"></i>
+                </div>
+                <div>
+                    <h1
+                        class="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-indigo-200 to-emerald-400">
+                        HabitQuest <span
+                            class="text-xs uppercase font-extrabold tracking-widest px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20 ml-1">RPG</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">Level up your life, one day at a time</p>
+                </div>
+            </div>
+
+            <!-- Date Display and Simulation Actions -->
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Date Badge -->
+                <div
+                    class="flex items-center gap-2 bg-slate-900/80 border border-slate-800 rounded-xl px-3.5 py-1.5 shadow-inner">
+                    <i class="fa-regular fa-calendar-days text-purple-400"></i>
+                    <span id="date-display" class="text-sm font-semibold tracking-wide text-slate-200">July 18,
+                        2026</span>
+                </div>
+
+                <!-- Simulate Day Button -->
+                <button id="simulate-day-btn"
+                    class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-bold text-xs uppercase tracking-wider py-2 px-4 rounded-xl shadow-lg shadow-orange-950/20 transition-all duration-300 transform active:scale-95 flex items-center gap-2 border border-amber-400/20">
+                    <i class="fa-solid fa-forward-fast"></i>
+                    Simulate New Day
+                </button>
+
+                <!-- Settings / Reset Button -->
+                <button id="reset-data-btn"
+                    class="bg-slate-900/50 hover:bg-red-950/30 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-900/50 p-2 rounded-xl transition-all duration-200"
+                    title="Reset All Data">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+            <!-- LEFT PANEL: Avatar & RPG Stats -->
+            <section class="lg:col-span-1 flex flex-col gap-6">
+                <div class="card-glass p-5 rounded-2xl flex flex-col items-center relative overflow-hidden group">
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-purple-600/5 rounded-full blur-3xl -mr-8 -mt-8 pointer-events-none">
+                    </div>
+
+                    <!-- Avatar Area -->
+                    <div class="relative w-48 h-48 flex items-center justify-center mb-4">
+                        <!-- Orbit Rings -->
+                        <div
+                            class="absolute inset-0 rounded-full border border-purple-500/10 animate-[spin_20s_linear_infinite]">
+                        </div>
+                        <div
+                            class="absolute inset-4 rounded-full border border-dashed border-indigo-500/20 animate-[spin_15s_linear_infinite_reverse]">
+                        </div>
+
+                        <!-- Inline SVG Character (Drawn dynamically or styled statically with classes) -->
+                        <div id="avatar-svg-container"
+                            class="z-10 w-36 h-36 filter drop-shadow-[0_0_15px_rgba(139,92,246,0.3)] transition-all duration-500">
+                            <!-- SVG will be injected by JavaScript to dynamic expressions -->
+                        </div>
+
+                        <!-- Mood Floating Badge -->
+                        <div id="pet-mood-badge"
+                            class="absolute bottom-2 right-2 bg-slate-900/90 border border-purple-500/30 text-purple-400 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-md">
+                            Happy
+                        </div>
+                    </div>
+
+                    <!-- Character Title -->
+                    <div class="text-center w-full mb-4">
+                        <div class="text-xs uppercase tracking-widest font-extrabold text-purple-400 mb-0.5">Pet
+                            Companion</div>
+                        <h2 id="pet-name"
+                            class="text-lg font-bold text-slate-100 flex items-center justify-center gap-1.5">
+                            Cyber-Slime
+                            <button id="rename-pet-btn"
+                                class="text-slate-500 hover:text-purple-400 transition-colors"><i
+                                    class="fa-solid fa-pen text-xs"></i></button>
+                        </h2>
+                    </div>
+
+                    <!-- Level Badge & XP Progress -->
+                    <div class="w-full bg-slate-900/60 border border-slate-800/80 rounded-xl p-3 mb-4">
+                        <div class="flex justify-between items-end mb-1.5">
+                            <span class="text-xs font-semibold text-slate-400">Level Progress</span>
+                            <span id="level-display"
+                                class="text-sm font-extrabold text-gold-400 bg-gold-500/10 px-2 py-0.5 rounded border border-gold-500/20">Lvl
+                                1</span>
+                        </div>
+                        <!-- Progress Bar Container -->
+                        <div
+                            class="w-full h-3 bg-slate-950 rounded-full border border-slate-800 overflow-hidden relative p-[2px]">
+                            <div id="xp-bar"
+                                class="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 rounded-full transition-all duration-500 ease-out"
+                                style="width: 0%;"></div>
+                        </div>
+                        <div class="flex justify-between items-center mt-1.5 text-[11px] text-slate-400 font-semibold">
+                            <span id="xp-text">0 / 100 XP</span>
+                            <span id="xp-percentage">0%</span>
+                        </div>
+                    </div>
+
+                    <!-- Mini Stats Grid -->
+                    <div class="grid grid-cols-2 gap-3 w-full">
+                        <div class="bg-slate-900/40 border border-slate-800/50 rounded-xl p-3 text-center">
+                            <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">Habit Streak
+                            </div>
+                            <div class="text-xl font-extrabold text-emerald-400 flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-fire text-amber-500 animate-[bounce_1.5s_infinite]"></i>
+                                <span id="streak-display">0</span>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900/40 border border-slate-800/50 rounded-xl p-3 text-center">
+                            <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">Quests Done
+                            </div>
+                            <div class="text-xl font-extrabold text-purple-400">
+                                <span id="quests-done-display">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CENTER WORKSPACE: Habits & Quests Tracker -->
+            <section class="lg:col-span-2 flex flex-col gap-6">
+                <!-- Habits Section -->
+                <div class="card-glass p-5 rounded-2xl flex flex-col gap-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-repeat text-emerald-400"></i>
+                            <h3 class="font-bold text-slate-200">Daily Habits</h3>
+                        </div>
+                        <span id="habits-count-badge"
+                            class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">0
+                            Active</span>
+                    </div>
+
+                    <!-- Add Habit Form -->
+                    <form id="add-habit-form" class="flex gap-2">
+                        <input type="text" id="habit-name-input" placeholder="Enter a recurring habit..." required
+                            maxlength="40"
+                            class="flex-grow bg-slate-950/80 border border-slate-800/80 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 transition-colors placeholder:text-slate-600">
+                        <button type="submit"
+                            class="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 border border-emerald-500/20 hover:border-emerald-500 font-semibold text-sm px-4 rounded-xl transition-all duration-200 active:scale-95 flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Add
+                        </button>
+                    </form>
+
+                    <!-- Habits List -->
+                    <div id="habits-list" class="flex flex-col gap-2.5 max-h-[350px] overflow-y-auto pr-1">
+                        <!-- Dynamic content injected here -->
+                        <div class="text-center py-8 text-slate-500 text-sm">
+                            <i class="fa-regular fa-clipboard text-2xl mb-2 block opacity-40"></i>
+                            No habits defined. Add a habit above to begin!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quests Section -->
+                <div class="card-glass p-5 rounded-2xl flex flex-col gap-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-circle-exclamation text-purple-400"></i>
+                            <h3 class="font-bold text-slate-200">Daily Quests</h3>
+                        </div>
+                        <span id="quests-count-badge"
+                            class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">0
+                            Active</span>
+                    </div>
+
+                    <!-- Add Quest Form -->
+                    <form id="add-quest-form" class="flex gap-2">
+                        <input type="text" id="quest-text-input"
+                            placeholder="Enter a one-time quest (e.g. Clean room)..." required maxlength="50"
+                            class="flex-grow bg-slate-950/80 border border-slate-800/80 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-purple-500 transition-colors placeholder:text-slate-600">
+                        <button type="submit"
+                            class="bg-purple-500/10 hover:bg-purple-500 text-purple-300 hover:text-slate-950 border border-purple-500/20 hover:border-purple-500 font-semibold text-sm px-4 rounded-xl transition-all duration-200 active:scale-95 flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Add
+                        </button>
+                    </form>
+
+                    <!-- Quests List -->
+                    <div id="quests-list" class="flex flex-col gap-2.5 max-h-[250px] overflow-y-auto pr-1">
+                        <!-- Dynamic content injected here -->
+                        <div class="text-center py-8 text-slate-500 text-sm">
+                            <i class="fa-solid fa-scroll text-2xl mb-2 block opacity-40"></i>
+                            No active quests. Create one for some extra XP!
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT PANEL: Wellness Loggers & Analytics -->
+            <section class="lg:col-span-1 flex flex-col gap-6">
+                <!-- Water Counter Card -->
+                <div class="card-glass p-5 rounded-2xl flex flex-col gap-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-droplet text-blue-400"></i>
+                            <h3 class="font-bold text-slate-200">Hydration Log</h3>
+                        </div>
+                        <span id="water-progress-text" class="text-xs font-bold text-blue-400">0 / 2000 ml</span>
+                    </div>
+
+                    <!-- Water Visualization Container -->
+                    <div class="flex items-center gap-5 my-2">
+                        <!-- Interactive bottle container -->
+                        <div
+                            class="w-16 h-36 bg-slate-950 rounded-2xl border-2 border-slate-800 relative overflow-hidden flex flex-col justify-end p-0.5 shadow-inner">
+                            <div id="water-level"
+                                class="w-full bg-gradient-to-t from-blue-600 via-blue-500 to-cyan-400 rounded-xl transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(59,130,246,0.5)]"
+                                style="height: 0%;"></div>
+                            <!-- Measurement ticks -->
+                            <div
+                                class="absolute inset-y-0 right-2 flex flex-col justify-between py-4 text-[8px] text-slate-600 select-none font-extrabold">
+                                <span>2L</span>
+                                <span>1.5</span>
+                                <span>1L</span>
+                                <span>0.5</span>
+                                <span>0</span>
+                            </div>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="flex flex-col gap-2.5 flex-grow">
+                            <button id="add-water-btn"
+                                class="bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm py-2.5 px-4 rounded-xl shadow-lg shadow-blue-950/20 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 border border-blue-400/20">
+                                <i class="fa-solid fa-glass-water text-base"></i>
+                                +250 ml
+                            </button>
+                            <button id="reset-water-btn"
+                                class="bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 text-xs py-1.5 px-3 rounded-lg hover:text-slate-300 transition-colors">
+                                Reset Today
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sleep Logger Card -->
+                <div class="card-glass p-5 rounded-2xl flex flex-col gap-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-moon text-indigo-400"></i>
+                            <h3 class="font-bold text-slate-200">Sleep Logger</h3>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <!-- Logged Sleep Status -->
+                        <div id="sleep-status-display"
+                            class="hidden text-xs bg-slate-900/60 border border-indigo-500/20 text-indigo-300 p-2.5 rounded-xl flex items-center justify-between">
+                            <span>Logged today: <strong id="logged-sleep-val">0</strong> hours</span>
+                            <span id="logged-sleep-stars" class="text-gold-400"></span>
+                        </div>
+
+                        <!-- Hours Selector -->
+                        <div
+                            class="flex items-center justify-between bg-slate-950 border border-slate-800 rounded-xl p-1.5">
+                            <span class="text-xs text-slate-400 font-semibold ml-2">Duration</span>
+                            <div class="flex items-center gap-2">
+                                <button id="sleep-dec-btn" type="button"
+                                    class="w-7 h-7 bg-slate-900 border border-slate-800 rounded-lg flex items-center justify-center hover:bg-slate-800 hover:border-slate-700 active:scale-90 text-sm font-bold text-slate-300 transition-all">-</button>
+                                <span id="sleep-hours-input"
+                                    class="w-8 text-center text-sm font-extrabold text-slate-100">8.0</span>
+                                <button id="sleep-inc-btn" type="button"
+                                    class="w-7 h-7 bg-slate-900 border border-slate-800 rounded-lg flex items-center justify-center hover:bg-slate-800 hover:border-slate-700 active:scale-90 text-sm font-bold text-slate-300 transition-all">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Star Rating Selector -->
+                        <div class="flex items-center justify-between px-1">
+                            <span class="text-xs text-slate-400 font-semibold">Sleep Quality</span>
+                            <div id="sleep-star-rating" class="flex gap-1 text-base text-slate-600">
+                                <i class="fa-solid fa-star cursor-pointer hover:scale-110 transition-transform"
+                                    data-star="1"></i>
+                                <i class="fa-solid fa-star cursor-pointer hover:scale-110 transition-transform"
+                                    data-star="2"></i>
+                                <i class="fa-solid fa-star cursor-pointer hover:scale-110 transition-transform"
+                                    data-star="3"></i>
+                                <i class="fa-solid fa-star cursor-pointer hover:scale-110 transition-transform"
+                                    data-star="4"></i>
+                                <i class="fa-solid fa-star cursor-pointer hover:scale-110 transition-transform"
+                                    data-star="5"></i>
+                            </div>
+                        </div>
+
+                        <button id="save-sleep-btn"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs py-2 px-3 rounded-xl transition-all duration-200 border border-indigo-500/20 active:scale-95 shadow-lg shadow-indigo-950/20">
+                            Log Sleep
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 7-Day Analytics Card -->
+                <div class="card-glass p-5 rounded-2xl flex flex-col gap-3">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-amber-400"></i>
+                            <h3 class="font-bold text-slate-200 text-sm">7-Day Completion Rate</h3>
+                        </div>
+                    </div>
+
+                    <!-- SVG Analytics Container -->
+                    <div
+                        class="w-full relative h-[140px] flex items-center justify-center bg-slate-950/60 rounded-xl border border-slate-900 p-2">
+                        <svg id="analytics-chart" class="w-full h-full text-slate-400 overflow-visible">
+                            <!-- Re-rendered dynamically in app.js -->
+                        </svg>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Modal Background overlay (Confetti & Level-up celebration) -->
+    <div id="celebration-modal"
+        class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <!-- Modal Card -->
+        <div
+            class="bg-slate-900 border-2 border-purple-500/30 rounded-3xl p-8 max-w-sm w-full mx-4 text-center shadow-[0_0_50px_rgba(139,92,246,0.25)] relative transform scale-90 transition-transform duration-300 flex flex-col items-center">
+            <!-- Neon Level Badge -->
+            <div
+                class="w-24 h-24 bg-gradient-to-tr from-yellow-500 to-amber-400 rounded-full flex items-center justify-center border-4 border-amber-300 shadow-lg shadow-yellow-500/30 text-slate-950 font-black text-3xl mb-6 relative">
+                <span id="modal-level-text">2</span>
+                <!-- Star details -->
+                <i class="fa-solid fa-star absolute -top-1 -right-1 text-yellow-300 text-lg animate-bounce"></i>
+            </div>
+
+            <h3
+                class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-200 to-orange-400 mb-2 uppercase tracking-wide">
+                Level Up!
+            </h3>
+            <p id="modal-subtext" class="text-sm text-slate-300 mb-6 font-medium">Your digital companion is evolving and
+                feeling stronger!</p>
+
+            <button id="modal-close-btn"
+                class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 active:scale-95 border border-purple-400/20">
+                Awesome!
+            </button>
+        </div>
+    </div>
+
+    <!-- Celebration Confetti Canvas overlay -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-55 hidden"></canvas>
+
+    <!-- Simple Toast notifications -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
+
+    <!-- Footer -->
+    <footer
+        class="border-t border-slate-900 py-6 px-4 mt-6 text-center text-xs text-slate-500 bg-slate-950/80 backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>&copy; 2026 HabitQuest RPG. All rights reserved.</p>
+            <p class="flex items-center gap-1">Made with <i
+                    class="fa-solid fa-heart text-red-500 animate-[heartbeat_1.2s_infinite]"></i> by Vijay</p>
+        </div>
+    </footer>
+
+    <!-- App Logic -->
+    <script src="app.js"></script>
+</body>
+
+</html>

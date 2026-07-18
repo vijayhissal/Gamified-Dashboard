@@ -1,0 +1,175 @@
+/* Import Outfit and Inter Google Fonts (already loaded in HTML but good practice to reference or style custom properties) */
+:root {
+    --color-emerald: 16, 185, 129;
+    --color-blue: 59, 130, 246;
+    --color-purple: 139, 92, 246;
+    --color-gold: 245, 158, 11;
+}
+
+/* Custom glow classes */
+.shadow-neon-emerald {
+    box-shadow: 0 0 15px rgba(var(--color-emerald), 0.25);
+}
+.shadow-neon-blue {
+    box-shadow: 0 0 15px rgba(var(--color-blue), 0.25);
+}
+.shadow-neon-purple {
+    box-shadow: 0 0 15px rgba(var(--color-purple), 0.25);
+}
+.shadow-neon-gold {
+    box-shadow: 0 0 15px rgba(var(--color-gold), 0.25);
+}
+
+/* Glassmorphism panel styling */
+.card-glass {
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 32px 0 rgba(3, 7, 18, 0.6);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-glass:hover {
+    border-color: rgba(139, 92, 246, 0.15);
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.3);
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 92, 246, 0.3);
+}
+
+/* Floating XP Particle Text styling */
+.xp-particle {
+    position: absolute;
+    pointer-events: none;
+    font-size: 0.875rem;
+    font-weight: 800;
+    animation: floatUpFade 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    transform: translate(-50%, -50%);
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8), 0 0 12px currentColor;
+    white-space: nowrap;
+}
+
+@keyframes floatUpFade {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, 0) scale(0.6);
+    }
+    15% {
+        opacity: 1;
+        transform: translate(-50%, -20px) scale(1.1);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50px) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -90px) scale(0.85);
+    }
+}
+
+/* Custom Checkbox bounce and glow animation */
+.habit-checkbox:checked {
+    animation: checkboxBounce 0.4s ease-out;
+}
+
+@keyframes checkboxBounce {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.25);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Star Rating Hover Effects */
+#sleep-star-rating i.active {
+    color: #fbbf24;
+    text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+}
+
+/* Custom heartbeat animation */
+@keyframes heartbeat {
+    0% {
+        transform: scale(1);
+    }
+    14% {
+        transform: scale(1.12);
+    }
+    28% {
+        transform: scale(1);
+    }
+    42% {
+        transform: scale(1.12);
+    }
+    70% {
+        transform: scale(1);
+    }
+}
+
+/* Custom SVG Chart aesthetics */
+.chart-grid-line {
+    stroke: rgba(255, 255, 255, 0.03);
+    stroke-dasharray: 4, 4;
+}
+
+.chart-axis-line {
+    stroke: rgba(255, 255, 255, 0.1);
+}
+
+.chart-line {
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0px 4px 10px rgba(139, 92, 246, 0.4));
+}
+
+.chart-area {
+    opacity: 0.15;
+}
+
+.chart-point {
+    transition: r 0.2s ease, fill 0.2s ease;
+    cursor: pointer;
+}
+
+.chart-point:hover {
+    r: 6px;
+    fill: #ffffff !important;
+}
+
+/* Neon animated border for level up */
+@keyframes borderGlow {
+    0%, 100% {
+        border-color: rgba(167, 139, 250, 0.3);
+        box-shadow: 0 0 20px rgba(167, 139, 250, 0.1);
+    }
+    50% {
+        border-color: rgba(245, 158, 11, 0.6);
+        box-shadow: 0 0 35px rgba(245, 158, 11, 0.3);
+    }
+}
+
+.level-up-glow {
+    animation: borderGlow 2s infinite ease-in-out;
+}
