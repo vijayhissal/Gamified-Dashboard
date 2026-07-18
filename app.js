@@ -49,11 +49,16 @@ function initState() {
         try {
             state = JSON.parse(stored);
             // Ensure necessary fields are populated in case of older schemas
+            if (!state.profile) state.profile = JSON.parse(JSON.stringify(DEFAULT_STATE.profile));
+            if (!state.profile.userName) state.profile.userName = "Hero Adventurer";
+            if (!state.profile.gender) state.profile.gender = "girl";
+            if (!state.profile.level) state.profile.level = 1;
+            if (state.profile.currentXp === undefined) state.profile.currentXp = 0;
+            if (state.profile.xpNeeded === undefined) state.profile.xpNeeded = 100;
+            if (!state.profile.petName) state.profile.petName = "Cyber-Slime";
             if (!state.history) state.history = DEFAULT_STATE.history;
             if (!state.currentDate) state.currentDate = todayStr;
             if (state.totalQuestsCompleted === undefined) state.totalQuestsCompleted = 0;
-            if (!state.profile.userName) state.profile.userName = "Hero Adventurer";
-            if (!state.profile.gender) state.profile.gender = "girl";
         } catch (e) {
             console.error("Error loading state from localStorage, resetting to default.", e);
             state = JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -1112,6 +1117,7 @@ function renderAnalyticsChart() {
 }
 
 function formatShortDate(dateStr) {
+    if (!dateStr) return "";
     const parts = dateStr.split('-');
     if (parts.length < 3) return dateStr;
     const date = new Date(dateStr + "T12:00:00");
